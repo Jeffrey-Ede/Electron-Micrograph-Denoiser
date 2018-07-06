@@ -62,6 +62,8 @@ disp(img) #Image before denoising
 disp(denoised_img) #Image after denoising
 ```
 
+To continue training the neural network; end-to-end or to fine-tune it, you will need to adjust some of the variables at the top of the `denoiser-multi-gpu` training file. Specifically, variables indicating the location of your datasets and locations to save logs and checkpoints to. 
+
 ##Incomplete! 
 
 This repository is still in the works! I'm in the process of writing up a paper, publishing the training, validation and test data and neatening up my source code. Nevertheless, the neural network published here is now in a working state.
