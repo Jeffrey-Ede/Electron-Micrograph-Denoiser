@@ -64,13 +64,15 @@ disp(denoised_img) #Image after denoising
 
 To continue training the neural network; end-to-end or to fine-tune it, you will need to adjust some of the variables at the top of the `denoiser-multi-gpu` training file. Specifically, variables indicating the location of your datasets and locations to save logs and checkpoints to.
 
-#Neural Network Info
+## Neural Network Info
+
 This neural network is inspired by networks Google developed for semantic image segementation. It was developed with the aim of testing how well a deep atrous convolutional encode-decoder architecture can denoise trasmission electron electron micrographs. The answer is pretty well! When tested on 20000 unseen micrographs it had a mean squared error 24.6% better than existing denoising methods with an average batch size 1 inference time of 77.0 ms for 1 GTX 1080 Ti GPU and a 3.4 GHz i7-6700 processor. More details will be available in the paper when it is published. For reference, its architecture is show here
 
-#Example Applications
+## Example Applications
+
 Example applications of the neural network to 512x512 crops are coming on Monday!
 
-##Incomplete! 
+## Incomplete! 
 
 This repository is still in the works! I'm in the process of writing up a paper, publishing the training, validation and test data and neatening up my source code. Nevertheless, the neural network published here is now in a working state.
 
