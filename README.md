@@ -48,7 +48,7 @@ import numpy as np
 from denoiser import Denoiser, disp
 
 #Create a 1000x1000 image from randon numbers for demonstration
-#Tra=y replacing this with your own image!
+#Try replacing this with your own image!
 img = np.random.rand(1000, 1000)
 
 #Initialize the denoising neural network
@@ -80,6 +80,6 @@ Example applications of the neural network to 512x512 crops are coming on Monday
 
 ## Incomplete! 
 
-This repository is still in the works! I'm in the process of writing up a paper, publishing the training, validation and test data and neatening up my source code. Nevertheless, the neural network published here is now in a working state.
+This repository is still in the works! I'm in the process of writing up a paper, publishing the training, validation and test data and neatening up my source code. Nevertheless, the neural network published here is now in a working state. I'll make sure everything else is on Monday.
 
 [Trained neural network](<add link>)
