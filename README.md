@@ -2,6 +2,8 @@
 
 This repository is for a deep convolutional neural network trained to remove Poisson noise from low-dose transmission electron micrographs that outperforms existing methods by 24.6%. It contains a checkpoint for the fully trained network, a training script `denoiser-multi-gpu.py` and an inference script 'denoiser.py'. The training script is written for multi-GPU training in a distributed setting and the inference script loads the neural network once for repeated inference.
 
+<div style="text-align:center"><img src ="noise-removal-nn.png" /></div>
+
 ## Download
 
 To get the neural network and its training and inference scripts, simply copy the files from or clone this repository:
@@ -66,7 +68,7 @@ To continue training the neural network; end-to-end or to fine-tune it, you will
 
 ## Neural Network Info
 
-This neural network is inspired by networks Google developed for semantic image segementation. It was developed with the aim of testing how well a deep atrous convolutional encode-decoder architecture can denoise trasmission electron electron micrographs. The answer is pretty well! When tested on 20000 unseen micrographs it had a mean squared error 24.6% better than existing denoising methods with an average batch size 1 inference time of 77.0 ms for 1 GTX 1080 Ti GPU and a 3.4 GHz i7-6700 processor. More details will be available in the paper when it is published. For reference, its architecture is show here
+This neural network is inspired by networks Google developed for semantic image segementation. It was developed with the aim of testing how well a deep atrous convolutional encode-decoder architecture can denoise trasmission electron electron micrographs. The answer is pretty well! When tested on 20000 unseen micrographs it had a mean squared error 24.6% better than existing denoising methods with an average batch size 1 inference time of 77.0 ms for 1 GTX 1080 Ti GPU and a 3.4 GHz i7-6700 processor. More details will be available in the paper when it is published.
 
 ## Example Applications
 
