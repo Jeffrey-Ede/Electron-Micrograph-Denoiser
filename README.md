@@ -37,15 +37,13 @@ for training you also need:
 
 Example inference:
 
-'''python
+```python
 import numpy as np
 from denoiser import Denoiser, disp
 
 #Create a 1000x1000 image from randon numbers for demonstration
 #Tra=y replacing this with your own image!
 img = np.random.rand(1000, 1000)
-
-
 
 #Initialize the denoising neural network
 noise_remover = Denoiser()
@@ -62,7 +60,7 @@ disp(crop) #Crop before denoising
 disp(denoised_crop) #Crop after denoising
 disp(img) #Image before denoising
 disp(denoised_img) #Image after denoising
-'''
+```
 
 ##Incomplete! 
 
