@@ -41,7 +41,7 @@ For training you also need:
 
 ## Example Usage
 
-Example inference:
+This short script gives an example of inference where the neural network is loaded once and applied to denoise multiple images:
 
 ```python
 import numpy as np
@@ -68,7 +68,7 @@ disp(img) #Image before denoising
 disp(denoised_img) #Image after denoising
 ```
 
-To continue training the neural network; end-to-end or to fine-tune it, you will need to adjust some of the variables at the top of the `denoiser-multi-gpu` training file. Specifically, variables indicating the location of your datasets and locations to save logs and checkpoints to.
+To continue training the neural network; end-to-end or to fine-tune it, you will need to adjust some of the variables at the top of the `denoiser-multi-gpu.py` training file. Specifically, variables indicating the location of your datasets and locations to save logs and checkpoints to.
 
 ## Neural Network Info
 
