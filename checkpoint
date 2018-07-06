@@ -1,0 +1,2 @@
+model_checkpoint_path: "//flexo.ads.warwick.ac.uk/Shared41/Microscopy/Jeffrey-Ede/models/denoiser-multi-gpu-13/model/-178227"
+all_model_checkpoint_paths: "//flexo.ads.warwick.ac.uk/Shared41/Microscopy/Jeffrey-Ede/models/denoiser-multi-gpu-13/model/-178227"
