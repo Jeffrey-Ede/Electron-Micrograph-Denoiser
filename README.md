@@ -1,6 +1,8 @@
 # Low-Dose Transmission Electron Micrograph Denoiser
 
-This repository is for a deep convolutional neural network trained to remove Poisson noise from low-dose transmission electron micrographs that outperforms existing methods by 24.6%. It contains a checkpoint for the fully trained network, a training script `denoiser-multi-gpu.py` and an inference script 'denoiser.py'. The training script is written for multi-GPU training in a distributed setting and the inference script loads the neural network once for repeated inference.
+This repository is for a deep atrous convolutional encoder-decoder trained to remove Poisson noise from low-dose transmission electron micrographs. It outperforms existing methods by 24.6% and has a batch size 1 inference time of 77.0 ms. More details will be found in a paper published on it soon.
+
+The repository contains a checkpoint for the fully trained network, a training script `denoiser-multi-gpu.py` and an inference script `denoiser.py`. The training script is written for multi-GPU training in a distributed setting and the inference script loads the neural network once for repeated inference.
 
 <p align="center">
   <img src="noise-removal-nn.png">
