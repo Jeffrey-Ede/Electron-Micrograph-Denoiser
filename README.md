@@ -47,9 +47,9 @@ This short script gives an example of inference where the neural network is load
 import numpy as np
 from denoiser import Denoiser, disp
 
-#Create a 1000x1000 image from randon numbers for demonstration
+#Create a 1500x1500 image from random numbers for demonstration
 #Try replacing this with your own image!
-img = np.random.rand(1000, 1000)
+img = np.random.rand(1500, 1500)
 
 #Initialize the denoising neural network
 noise_remover = Denoiser()
