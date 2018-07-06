@@ -19,7 +19,7 @@ cd Electron-Micrograph-Denoiser
 
 ## Dependencies
 
-This neural network was trained using TensorFlow and requires it and other common python libraries. Most of these libraries come with modern python distributions by default. If you don't some of these libraries, they can be installed using pip or another package manager. 
+This neural network was trained using TensorFlow and requires it and other common python libraries. Most of these libraries come with modern python distributions by default. If you don't have some of these libraries, they can be installed using pip or another package manager. 
 
 Libraries you need for both training and inference:
 
