@@ -8,16 +8,16 @@ The repository contains a checkpoint for the fully trained network, a training s
   <img src="noise-removal-nn.png">
 </p>
 
-## Download
+## How To Use This Neural Network
 
-To get the neural network and its training and inference scripts, simply copy the files from or clone this repository:
+To get the training and inference scripts, simply copy the files from or clone this repository:
 
 ```
 git clone https://github.com/Jeffrey-Ede/Electron-Micrograph-Denoiser.git
 cd Electron-Micrograph-Denoiser
 ```
 
-The last saved checkpoint for the fully trained neural network is available [here](https://drive.google.com/open?id=1ehfRekaNUc1NJzjXeyhF3Tv9kOVWt8wN). To use the network, change the location in `checkpoint` to the location you save your copy of the network to.
+The last saved checkpoint for the fully trained neural network is available [here](https://drive.google.com/open?id=1ehfRekaNUc1NJzjXeyhF3Tv9kOVWt8wN). To use it, change the location in `checkpoint` to the location you save your copy of the network to.
 
 ## Dependencies
 
