@@ -631,10 +631,6 @@ class Denoiser(object):
 
     def preprocess(self, img):
 
-        img = cv2.resize(img, (512,512))
-
-        img = scale0to1(img)
-
         img[np.isnan(img)] = 0.5
         img[np.isinf(img)] = 0.5
 
@@ -642,9 +638,79 @@ class Denoiser(object):
 
         return img
 
-    def denoise(self, img):
-        pred = self.sess.run(self._tower_preds, feed_dict={self.img_ph[0]: self.preprocess(img)})
-        return pred.clip(0., 1.).reshape(512, 512)
+    def denoise_crop(self, crop, preprocess=True, scaling=True, postprocess=True):
+
+        crop = cv2.resize(crop, (512,512))
+
+        if scaling:
+            offset = np.min(crop)
+            scale = np.max(crop) - offset
+            
+            if scale:
+                crop = (crop-offset)/scale
+            else: 
+                crop = crop.fill(0.5)
+
+        pred = self.sess.run(self._tower_preds, 
+                             feed_dict={self.img_ph[0]: 
+                                        self.preprocess(crop) if preprocess else crop})
+
+        if scaling:
+            pred = pred*scale+offset if scale else pred*offset/np.mean(pred)
+
+        if postprocess:
+            return (crop).clip(0., 1.).reshape(512, 512)
+        else:
+            return pred
+
+    def denoise(img, preprocess=True, postprocess=True, overlap=10):
+        """
+        img: Image to denoise
+        preprocess: Remove nans and infs
+        """
+
+        if preprocess:
+            img = self.preprocess(img)
+
+        denoised = np.zeros(img.shape)
+        contributions = np.zeros(img.shape)
+    
+        num0 = img.shape[0]//(512-overlap)+1
+        num1 = img.shape[1]//(512-overlap)+1
+        len0 = img.shape[0]/num0
+        len1 = img.shape[1]/num1
+
+        for i in range(num0):
+            x = np.round(i*len0)
+            for j in range(num1):
+                y = np.round(j*len1)
+
+                crop = img[x:(x+512), y:(y+512)]
+                offset = np.min(crop)
+                scale = np.max(crop) - offset
+
+                if scale:
+                    crop = (crop-offset)/scale
+                else: 
+                    crop = crop.fill(0.5)
+
+                pred = self.denoise_crop(
+                    crop=crop, 
+                    preprocess=False,
+                    scaling=False, 
+                    postprocess=False).reshape((512,512))
+
+                pred = pred*scale+offset if scale else pred*offset/np.mean(pred)
+
+                denoised[x:(x+512), y:(y+512)] = pred*scale + offset
+                contributions[x:(x+512), y:(y+512)] += 1
+
+        denoised /= contributions
+
+        if postprocess:
+            return denoised.clip(0., 1.)
+        else:
+            return denoised
 
 def scale0to1(img):
     """Rescale image between 0 and 1"""
@@ -653,7 +719,7 @@ def scale0to1(img):
     max = np.max(img)
 
     if min == max:
-        img.fill(0.5)
+        img = img.fill(0.5)
     else:
         img = (img-min) / (max-min)
 
@@ -669,5 +735,5 @@ def disp(img):
 
 if __name__ == "__main__":
 
-    denoiser = Denoiser(visible_cuda="1")
-    disp(denoiser.denoise(np.random.rand(512,512)))
+    denoiser = Denoiser(visible_cuda="0")
+    disp(denoiser.denoise_crop(np.random.rand(512,512)))
