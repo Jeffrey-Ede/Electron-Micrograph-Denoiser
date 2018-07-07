@@ -8,7 +8,7 @@ The repository contains a checkpoint for the fully trained network, a training s
   <img src="noise-removal-nn.png">
 </p>
 
-## How To Use This Neural Network
+## Download
 
 To get the training and inference scripts, simply copy the files from or clone this repository:
 
