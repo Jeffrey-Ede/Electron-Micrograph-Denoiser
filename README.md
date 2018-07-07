@@ -45,7 +45,7 @@ The network was scripted for python 3.6 using Windows 10. Small adjustments may 
 
 ## Example Usage
 
-This short script gives an example of inference where the neural network is loaded once and applied to denoise multiple images:
+This short script is available as `example_denoiser.py` and gives an example of inference where the neural network is loaded once and used to denoise multiple times:
 
 ```python
 import numpy as np
