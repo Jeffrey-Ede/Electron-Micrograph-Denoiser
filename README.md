@@ -1,6 +1,6 @@
 # Low-Dose Transmission Electron Micrograph Denoiser
 
-This repository is for a deep atrous convolutional encoder-decoder trained to remove Poisson noise from low-dose transmission electron micrographs. It outperforms existing methods by 24.6% and has a batch size 1 (worst case) inference time of 77.0 ms. More details will be found in a paper published on it soon.
+This repository is for a deep atrous convolutional encoder-decoder trained to remove Poisson noise from low-dose transmission electron micrographs. It outperforms existing methods' average mean squared errors by 24.6% and has a batch size 1 (worst case) inference time of 77.0 ms. More details will be found in a paper published on it soon.
 
 The repository contains a checkpoint for the fully trained network, a training script `denoiser-multi-gpu.py` and an inference script `denoiser.py`. The training script is written for multi-GPU training in a distributed setting and the inference script loads the neural network once for repeated inference.
 
@@ -76,7 +76,7 @@ To continue training the neural network; end-to-end or to fine-tune it, you will
 
 ## Neural Network Info
 
-This neural network is inspired by networks Google developed for semantic image segementation. It was developed with the aim of testing how well a deep atrous convolutional encode-decoder architecture can denoise trasmission electron electron micrographs. The answer is pretty well! When tested on 20000 unseen micrographs it had a mean squared error 24.6% better than existing denoising methods with an average batch size 1 inference time of 77.0 ms for 1 GTX 1080 Ti GPU and a 3.4 GHz i7-6700 processor. More details will be available in the paper when it is published.
+This neural network is inspired by networks Google developed for semantic image segementation. It was developed with the aim of testing how well a deep atrous convolutional encode-decoder architecture can denoise trasmission electron micrographs. The answer is pretty well! When tested on 20000 unseen micrographs it had a mean squared error 24.6% better than existing denoising methods with an average batch size 1 inference time of 77.0 ms for 1 GTX 1080 Ti GPU and a 3.4 GHz i7-6700 processor. More details will be available in the paper when it is published.
 
 ## Example Applications
 
