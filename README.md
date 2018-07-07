@@ -17,6 +17,8 @@ git clone https://github.com/Jeffrey-Ede/Electron-Micrograph-Denoiser.git
 cd Electron-Micrograph-Denoiser
 ```
 
+The last saved checkpoint for the fully trained neural network is available [here](https://drive.google.com/open?id=1ehfRekaNUc1NJzjXeyhF3Tv9kOVWt8wN). To use the network, change the location in `checkpoint` to the location you save your copy of the network to.
+
 ## Dependencies
 
 This neural network was trained using TensorFlow and requires it and other common python libraries. Most of these libraries come with modern python distributions by default. If you don't have some of these libraries, they can be installed using pip or another package manager. 
