@@ -86,4 +86,4 @@ Example applications of the neural network to 512x512 crops are coming on Monday
 
 This repository is still in the works! I'm in the process of writing up a paper, publishing the training, validation and test data and neatening up my source code. Nevertheless, the neural network published here is now in a working state. I'll make sure everything else is on Monday.
 
-[Trained neural network](<add link>)
+To be clear, not all the code in this repository is if necessarilly in a working state e.g. I haven't tested the example usage scipt yet. Everything should be working by the end of Monday.
