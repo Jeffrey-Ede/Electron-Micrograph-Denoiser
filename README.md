@@ -41,6 +41,8 @@ For training you also need:
 * scipy
 * Image
 
+The network was scripted for python 3.6 using Windows 10. Small adjustments may need to be made for other environments or operating systems.
+
 ## Example Usage
 
 This short script gives an example of inference where the neural network is loaded once and applied to denoise multiple images:
