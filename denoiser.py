@@ -663,11 +663,14 @@ class Denoiser(object):
         else:
             return pred
 
-    def denoise(img, preprocess=True, postprocess=True, overlap=10):
+    def denoise(img, preprocess=True, postprocess=True, overlap=10, half_size=True):
         """
         img: Image to denoise
         preprocess: Remove nans and infs
         """
+        
+        if half_size:
+            img = cv2.resize(img, (img.size[0]//2,img.size[1]//2))
 
         if preprocess:
             img = self.preprocess(img)
