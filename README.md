@@ -78,12 +78,16 @@ To continue training the neural network; end-to-end or to fine-tune it, you will
 
 This neural network is inspired by networks Google developed for semantic image segementation. It was developed with the aim of testing how well a deep atrous convolutional encode-decoder architecture can denoise trasmission electron micrographs. The answer is pretty well! When tested on 20000 unseen micrographs it had a mean squared error 24.6% better than existing denoising methods with an average batch size 1 inference time of 77.0 ms for 1 GTX 1080 Ti GPU and a 3.4 GHz i7-6700 processor. More details will be available in the paper when it is published.
 
-## Example Applications
+## Examples
 
-Example applications of the neural network to 512x512 crops are coming on Monday!
+Here are some example applications of the network to noise applied to 512x512 crops from high-quality micrographs. The images are less blurred than they would be by other filters and there are no local artifacts.
+
+<p align="center">
+  <img src="examples1.png">
+</p>
 
 ## Incomplete! 
 
 This repository is still in the works! I'm in the process of writing up a paper, publishing the training, validation and test data and neatening up my source code. Nevertheless, the neural network published here is now in a working state. I'll make sure everything else is on Monday.
 
-To be clear, not all the code in this repository is if necessarilly in a working state e.g. I haven't tested the example usage scipt yet. Everything should be working by the end of Monday.
+To be clear, not all the code in this repository is if necessarilly in a working state e.g. I haven't tested the example usage scipt yet. Everthing should be working in the near future.
