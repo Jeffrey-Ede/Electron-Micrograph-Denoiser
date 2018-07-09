@@ -634,7 +634,7 @@ class Denoiser(object):
         img[np.isnan(img)] = 0.5
         img[np.isinf(img)] = 0.5
 
-        img = scale0to1(img).reshape(1,512,512,1)
+        img = scale0to1(img).reshape(-1,512,512,1)
 
         return img
 
@@ -663,14 +663,13 @@ class Denoiser(object):
         else:
             return pred
 
-    def denoise(img, preprocess=True, postprocess=True, overlap=10, half_size=True):
+    def denoise(img, preprocess=True, postprocess=True, overlap=25):
         """
         img: Image to denoise
-        preprocess: Remove nans and infs
+        preprocess: Remove nans and infs and make sure it has a (-1, 512, 512, 1) shape
+        postprocess: Clip output values to [0.0, 1.0] and reshape to (512, 512)
+        overlap: Amount of crop overlap. Predictions for the overlapping region won't be used
         """
-        
-        if half_size:
-            img = cv2.resize(img, (img.size[0]//2,img.size[1]//2))
 
         if preprocess:
             img = self.preprocess(img)
