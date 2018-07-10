@@ -6,11 +6,11 @@ The repository contains a checkpoint for the fully trained network, a training s
 
 ## Architecture
 
-Our network is inspired by networks Google developed for semantic image segementation. It was developed to test how well a deep atrous convolutional encode-decoder can denoise electron micrographs. The answer is pretty well! It improves upon the mean squared error and structural similarity indices of existing methods by ~25% and ~15%. More details will be found in a paper published on it soon.
-
 <p align="center">
   <img src="noise-removal-nn.png">
 </p>
+
+This network was developed to test how well a deep atrous convolutional encode-decoder can denoise electron micrographs. The answer is pretty well! It improves upon the mean squared error and structural similarity indices of existing methods by 25% and~15%, respectively. It is inspired by networks Google developed for semantic image segmentation.
 
 ## Examples
 
