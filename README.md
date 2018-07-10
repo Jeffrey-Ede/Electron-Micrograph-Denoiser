@@ -1,11 +1,23 @@
 # Low-Dose Electron Micrograph Denoiser
 
-This repository is for a deep atrous convolutional encoder-decoder trained to remove Poisson noise from low-dose electron micrographs. It outperforms existing methods' average mean squared errors by 24.6% and has a batch size 1 (worst case) inference time of 77.0 ms. More details will be found in a paper published on it soon.
+This repository is for a deep atrous convolutional encoder-decoder trained to remove Poisson noise from low-dose electron micrographs. It outperforms existing methods' average mean squared errors by 24.6% and has a batch size 1 (worst case) inference time of 77.0 ms for 1 GTX 1080 Ti GPU and a 3.4 GHz i7-6700 processor. More details will be found in a paper published on it soon.
 
 The repository contains a checkpoint for the fully trained network, a training script `denoiser-multi-gpu.py` and an inference script `denoiser.py`. The training script is written for multi-GPU training in a distributed setting and the inference script loads the neural network once for repeated inference.
 
+## Architecture
+
+Our network is inspired by networks Google developed for semantic image segementation. It was developed to test how well a deep atrous convolutional encode-decoder can denoise electron micrographs. The answer is pretty well! It improves upon the mean squared error and structural similarity indices of existing methods by ~25% and ~15%. More details will be found in a paper published on it soon.
+
 <p align="center">
   <img src="noise-removal-nn.png">
+</p>
+
+## Examples
+
+Here are some example applications of the network to noise applied to 512x512 crops from high-quality micrographs. The images are less blurred than they would be by other filters and there are no local artifacts.
+
+<p align="center">
+  <img src="examples1.png">
 </p>
 
 ## Download
@@ -65,7 +77,6 @@ denoised_crop = noise_remover.denoise_crop(crop)
 #Denoise the entire image
 denoised_img = noise_remover.denoise(img)
 
-#Use the disp function to display the results
 disp(crop) #Crop before denoising
 disp(denoised_crop) #Crop after denoising
 disp(img) #Image before denoising
@@ -74,20 +85,7 @@ disp(denoised_img) #Image after denoising
 
 To continue training the neural network; end-to-end or to fine-tune it, you will need to adjust some of the variables at the top of the `denoiser-multi-gpu.py` training file. Specifically, variables indicating the location of your datasets and locations to save logs and checkpoints to.
 
-## Neural Network Info
-
-This neural network is inspired by networks Google developed for semantic image segementation. It was developed with the aim of testing how well a deep atrous convolutional encode-decoder architecture can denoise trasmission electron micrographs. The answer is pretty well! When tested on 20000 unseen micrographs it had a mean squared error 24.6% better than existing denoising methods with an average batch size 1 inference time of 77.0 ms for 1 GTX 1080 Ti GPU and a 3.4 GHz i7-6700 processor. More details will be available in the paper when it is published.
-
-## Examples
-
-Here are some example applications of the network to noise applied to 512x512 crops from high-quality micrographs. The images are less blurred than they would be by other filters and there are no local artifacts.
-
-<p align="center">
-  <img src="examples1.png">
-</p>
 
 ## Incomplete! 
 
-This repository is still in the works! I'm in the process of writing up a paper, publishing the training, validation and test data and neatening up my source code. Nevertheless, the neural network published here is now in a working state. I'll make sure everything else is on Monday.
-
-To be clear, not all the code in this repository is if necessarilly in a working state e.g. I haven't tested the example usage scipt yet. Everthing should be working in the near future.
+This repository is still in the works! I'm in the process of finishing a paper, publishing the training, validation and test data and neatening up my source code. Nevertheless, the neural network and scripts published here are now in a working state.
