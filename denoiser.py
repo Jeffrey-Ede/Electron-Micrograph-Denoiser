@@ -465,7 +465,6 @@ def get_model_fn(num_gpus, variable_strategy, num_workers):
 
     def _model_fn(features, labels=None, mode=None, params=None):
         """Model body.
-
         Support single host, one or more GPU training. Parameter distribution can
         be either one of the following scheme.
         1. CPU is the parameter server and manages gradient updates.
@@ -629,18 +628,16 @@ class Denoiser(object):
         self.sess = sess
         self.img_ph = img_ph
 
-    def preprocess(self, img):
+    def preprocess(self, img, pad_width=0):
 
         img[np.isnan(img)] = 0.5
         img[np.isinf(img)] = 0.5
 
-        img = scale0to1(img).reshape(-1,512,512,1)
-
+        img = np.pad(img, pad_width=pad_width, mode='reflect').reshape(
+            -1,img.shape[0]+2*pad_width,img.shape[1]+2*pad_width,1)
         return img
 
     def denoise_crop(self, crop, preprocess=True, scaling=True, postprocess=True):
-
-        crop = cv2.resize(crop, (512,512))
 
         if scaling:
             offset = np.min(crop)
@@ -649,7 +646,7 @@ class Denoiser(object):
             if scale:
                 crop = (crop-offset)/scale
             else: 
-                crop = crop.fill(0.5)
+                crop.fill(0.5)
 
         pred = self.sess.run(self._tower_preds, 
                              feed_dict={self.img_ph[0]: 
@@ -659,42 +656,133 @@ class Denoiser(object):
             pred = pred*scale+offset if scale else pred*offset/np.mean(pred)
 
         if postprocess:
-            return (crop).clip(0., 1.).reshape(512, 512)
+            return pred.clip(0., 1.).reshape(512, 512)
         else:
             return pred
 
-    def denoise(img, preprocess=True, postprocess=True, overlap=25):
+    def denoise(self, img, preprocess=True, postprocess=True, overlap=25, used_overlap=1):
         """
         img: Image to denoise
-        preprocess: Remove nans and infs and make sure it has a (-1, 512, 512, 1) shape
+        preprocess: Remove nans and infs, make sure it has a (-1, 512, 512, 1) shape and 
+        reflection pad it
         postprocess: Clip output values to [0.0, 1.0] and reshape to (512, 512)
         overlap: Amount of crop overlap. Predictions for the overlapping region won't be used
         """
 
+        if overlap < used_overlap:
+            overlap = used_overlap
+
+        denoised = np.zeros((img.shape[0]+2*overlap, img.shape[1]+2*overlap))
+        contributions = np.zeros((img.shape[0]+2*overlap, img.shape[1]+2*overlap))
+
+        dims = img.shape
+
         if preprocess:
-            img = self.preprocess(img)
+            img = self.preprocess(img, pad_width=overlap)
 
-        denoised = np.zeros(img.shape)
-        contributions = np.zeros(img.shape)
-    
-        num0 = img.shape[0]//(512-overlap)+1
-        num1 = img.shape[1]//(512-overlap)+1
-        len0 = img.shape[0]/num0
-        len1 = img.shape[1]/num1
+        len = 512-2*overlap
+        len0 = len1 = len
+        for x in range(0, img.shape[1], len):
 
-        for i in range(num0):
-            x = np.round(i*len0)
-            for j in range(num1):
-                y = np.round(j*len1)
+            if img.shape[1] - x <= 512:
+                x = img.shape[1] - 512
 
-                crop = img[x:(x+512), y:(y+512)]
+                for y in range(0, img.shape[2], len):
+
+                    if img.shape[2] - y <= 512:
+                        y = img.shape[2] - 512
+
+                        crop = img[:, x:(x+512), y:(y+512), :]
+                        offset = np.min(crop)
+                        scale = np.max(crop) - offset
+
+                        if scale:
+                            crop = (crop-offset)/scale
+                        else: 
+                            crop.fill(0.5)
+
+                        pred = self.denoise_crop(
+                            crop=crop, 
+                            preprocess=False,
+                            scaling=False, 
+                            postprocess=False).reshape((512,512))
+
+                        pred = pred*scale+offset if scale else pred*offset/np.mean(pred)
+                        pred = pred.reshape(512, 512)
+                
+                        denoised[(x+overlap-used_overlap):(x+512-(overlap-used_overlap)),
+                                 (y+overlap-used_overlap):(y+512-(overlap-used_overlap))] += pred[
+                                     (overlap-used_overlap):(512-(overlap-used_overlap)),
+                                     (overlap-used_overlap):(512-(overlap-used_overlap))]
+
+                        contributions[(x+overlap-used_overlap):(x+512-(overlap-used_overlap)),
+                                      (y+overlap-used_overlap):(y+512-(overlap-used_overlap))] += 1
+
+                    crop = img[:, x:(x+512), y:(y+512), :]
+                    offset = np.min(crop)
+                    scale = np.max(crop) - offset
+
+                    if scale:
+                        crop = (crop-offset)/scale
+                    else: 
+                        crop.fill(0.5)
+
+                    pred = self.denoise_crop(
+                        crop=crop, 
+                        preprocess=False,
+                        scaling=False, 
+                        postprocess=False).reshape((512,512))
+
+                    pred = pred*scale+offset if scale else pred*offset/np.mean(pred)
+                    pred = pred.reshape(512, 512)
+                
+                    denoised[(x+overlap-used_overlap):(x+512-(overlap-used_overlap)),
+                                (y+overlap-used_overlap):(y+512-(overlap-used_overlap))] += pred[
+                                    (overlap-used_overlap):(512-(overlap-used_overlap)),
+                                    (overlap-used_overlap):(512-(overlap-used_overlap))]
+
+                    contributions[(x+overlap-used_overlap):(x+512-(overlap-used_overlap)),
+                                    (y+overlap-used_overlap):(y+512-(overlap-used_overlap))] += 1
+
+            for y in range(0, img.shape[2], len):
+
+                if img.shape[2] - y <= 512:
+                    y = img.shape[2] - 512
+
+                    crop = img[:, x:(x+512), y:(y+512), :]
+                    offset = np.min(crop)
+                    scale = np.max(crop) - offset
+
+                    if scale:
+                        crop = (crop-offset)/scale
+                    else: 
+                        crop.fill(0.5)
+
+                    pred = self.denoise_crop(
+                        crop=crop, 
+                        preprocess=False,
+                        scaling=False, 
+                        postprocess=False).reshape((512,512))
+
+                    pred = pred*scale+offset if scale else pred*offset/np.mean(pred)
+                    pred = pred.reshape(512, 512)
+                
+                    denoised[(x+overlap-used_overlap):(x+512-(overlap-used_overlap)),
+                             (y+overlap-used_overlap):(y+512-(overlap-used_overlap))] += pred[
+                                 (overlap-used_overlap):(512-(overlap-used_overlap)),
+                                 (overlap-used_overlap):(512-(overlap-used_overlap))]
+
+                    contributions[(x+overlap-used_overlap):(x+512-(overlap-used_overlap)),
+                                  (y+overlap-used_overlap):(y+512-(overlap-used_overlap))] += 1
+
+                crop = img[:, x:(x+512), y:(y+512), :]
                 offset = np.min(crop)
                 scale = np.max(crop) - offset
 
                 if scale:
                     crop = (crop-offset)/scale
                 else: 
-                    crop = crop.fill(0.5)
+                    crop.fill(0.5)
 
                 pred = self.denoise_crop(
                     crop=crop, 
@@ -703,16 +791,26 @@ class Denoiser(object):
                     postprocess=False).reshape((512,512))
 
                 pred = pred*scale+offset if scale else pred*offset/np.mean(pred)
+                pred = pred.reshape(512, 512)
+                
+                denoised[(x+overlap-used_overlap):(x+512-(overlap-used_overlap)),
+                         (y+overlap-used_overlap):(y+512-(overlap-used_overlap))] += pred[
+                             (overlap-used_overlap):(512-(overlap-used_overlap)),
+                             (overlap-used_overlap):(512-(overlap-used_overlap))]
 
-                denoised[x:(x+512), y:(y+512)] = pred*scale + offset
-                contributions[x:(x+512), y:(y+512)] += 1
+                contributions[(x+overlap-used_overlap):(x+512-(overlap-used_overlap)),
+                              (y+overlap-used_overlap):(y+512-(overlap-used_overlap))] += 1
 
-        denoised /= contributions
+        denoised = denoised[overlap:(denoised.shape[0]-overlap),
+                            overlap:(denoised.shape[1]-overlap)] / contributions[
+                                overlap:(contributions.shape[0]-overlap),
+                                overlap:(contributions.shape[1]-overlap)]
 
         if postprocess:
             return denoised.clip(0., 1.)
         else:
             return denoised
+
 
 def scale0to1(img):
     """Rescale image between 0 and 1"""
@@ -734,8 +832,3 @@ def disp(img):
     cv2.waitKey(0)
 
     return
-
-if __name__ == "__main__":
-
-    denoiser = Denoiser(visible_cuda="0")
-    disp(denoiser.denoise_crop(np.random.rand(512,512)))
