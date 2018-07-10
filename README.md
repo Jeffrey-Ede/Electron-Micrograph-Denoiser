@@ -10,7 +10,7 @@ The repository contains a checkpoint for the fully trained network, a training s
   <img src="noise-removal-nn.png">
 </p>
 
-This network was developed to test how well a deep atrous convolutional encode-decoder can denoise electron micrographs. The answer is pretty well! It improves upon the mean squared error and structural similarity indices of existing methods by 25% and~15%, respectively. It is inspired by networks Google developed for semantic image segmentation.
+This network was developed to test how well a deep atrous convolutional encode-decoder can denoise electron micrographs. The answer is pretty well! It improves upon the mean squared error and structural similarity indices of existing methods by 25% and 15%, respectively. It is inspired by networks Google developed for semantic image segmentation.
 
 ## Examples
 
@@ -19,6 +19,34 @@ Here are some example applications of the network to noise applied to 512x512 cr
 <p align="center">
   <img src="examples1.png">
 </p>
+
+## Example Usage
+
+This short script is available as `example_denoiser.py` and gives an example of inference where the neural network is loaded once and used to denoise multiple times:
+
+```python
+import numpy as np
+from denoiser import Denoiser, disp
+
+#Create a 1500x1500 image from random numbers for demonstration
+#Try replacing this with your own image!
+img = np.random.rand(1500, 1500)
+
+#Initialize the denoising neural network
+noise_remover = Denoiser()
+
+#Denoise a 512x512 crop from the image
+crop = img[:512,:512]
+denoised_crop = noise_remover.denoise_crop(crop)
+
+#Denoise the entire image
+denoised_img = noise_remover.denoise(img)
+
+disp(crop) #Crop before denoising
+disp(denoised_crop) #Crop after denoising
+disp(img) #Image before denoising
+disp(denoised_img) #Image after denoising
+```
 
 ## Download
 
@@ -55,33 +83,7 @@ For training you also need:
 
 The network was scripted for python 3.6 using Windows 10. Small adjustments may need to be made for other environments or operating systems.
 
-## Example Usage
-
-This short script is available as `example_denoiser.py` and gives an example of inference where the neural network is loaded once and used to denoise multiple times:
-
-```python
-import numpy as np
-from denoiser import Denoiser, disp
-
-#Create a 1500x1500 image from random numbers for demonstration
-#Try replacing this with your own image!
-img = np.random.rand(1500, 1500)
-
-#Initialize the denoising neural network
-noise_remover = Denoiser()
-
-#Denoise a 512x512 crop from the image
-crop = img[:512,:512]
-denoised_crop = noise_remover.denoise_crop(crop)
-
-#Denoise the entire image
-denoised_img = noise_remover.denoise(img)
-
-disp(crop) #Crop before denoising
-disp(denoised_crop) #Crop after denoising
-disp(img) #Image before denoising
-disp(denoised_img) #Image after denoising
-```
+## Training
 
 To continue training the neural network; end-to-end or to fine-tune it, you will need to adjust some of the variables at the top of the `denoiser-multi-gpu.py` training file. Specifically, variables indicating the location of your datasets and locations to save logs and checkpoints to.
 
