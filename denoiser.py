@@ -24,17 +24,6 @@ slim = tf.contrib.slim #For depthwise separable strided atrous convolutions
 
 tf.logging.set_verbosity(tf.logging.DEBUG)
 
-filters00 = 32
-filters01 = 64
-filters1 = 128
-filters2 = 256
-filters3 = 728
-filters4 = 728
-filters5 = 1024
-filters6 = 1536
-filters7 = 2048
-numMiddleXception = 8
-
 features0 = 64
 features1 = 128
 features2 = 256
