@@ -641,13 +641,13 @@ class Denoiser(object):
                              feed_dict={self.img_ph[0]: 
                                         self.preprocess(crop) if preprocess else crop})
 
+        if postprocess:
+            pred = pred.clip(0., 1.).reshape(512, 512)
+            
         if scaling:
             pred = pred*scale+offset if scale else pred*offset/np.mean(pred)
 
-        if postprocess:
-            return pred.clip(0., 1.).reshape(512, 512)
-        else:
-            return pred
+        return pred
 
     def denoise(self, img, preprocess=True, postprocess=True, overlap=25, used_overlap=1):
         """
