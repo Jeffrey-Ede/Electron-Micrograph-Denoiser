@@ -641,11 +641,14 @@ class Denoiser(object):
                              feed_dict={self.img_ph[0]: 
                                         self.preprocess(crop) if preprocess else crop})
 
-        if postprocess:
-            pred = pred.clip(0., 1.).reshape(512, 512)
-            
         if scaling:
             pred = pred*scale+offset if scale else pred*offset/np.mean(pred)
+            
+        if postprocess:
+            if scaling:
+                pred = pred.clip(offset, scale+offset)
+            else:
+                pred = pred.clip(0., 1.).reshape(512, 512)
 
         return pred
 
