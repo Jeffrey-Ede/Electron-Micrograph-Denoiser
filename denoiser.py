@@ -698,6 +698,9 @@ class Denoiser(object):
                             preprocess=False,
                             scaling=False, 
                             postprocess=False).reshape((512,512))
+                        
+                        #Rescale prediction so it has the same mean as the original crop
+                        pred *= np.mean(crop)/np.mean(pred)
 
                         pred = pred*scale+offset if scale else pred*offset/np.mean(pred)
                         pred = pred.reshape(512, 512)
