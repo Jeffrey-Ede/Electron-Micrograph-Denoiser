@@ -88,6 +88,12 @@ The network was scripted for python 3.6 using Windows 10. Small adjustments may 
 To continue training the neural network; end-to-end or to fine-tune it, you will need to adjust some of the variables at the top of the `denoiser-multi-gpu.py` training file. Specifically, variables indicating the location of your datasets and locations to save logs and checkpoints to.
 
 
-## Incomplete! 
+## Training Data
 
-This repository is still in the works! I'm in the process of finishing a paper, publishing the training, validation and test data and neatening up my source code. Nevertheless, the neural network and scripts published here are now in a working state.
+At the momoment, my dataset of 17267 2048x2048 micrograph with mean electron counts of at least 2500 ppx is only available through a request to the Warwick microscopy research technoledgy platform. This can be done by either contacting
+
+* Me at j.m.ede@warwick.ac.uk 
+* My PhD supervisor at r.beanland@warwick.ac.uk
+* Or [otherwise](https://warwick.ac.uk/fac/sci/physics/research/condensedmatt/microscopy/em-rtp/)
+
+I'm working on making the dataset immediately accessible through Google cloud storage and OpenML and have set this up. However, I'm not able to release it yet due to internal politics. Hopefully this can be resolved soon. In the meantime, making it accessible through contacting us seems to be the best course of action.
