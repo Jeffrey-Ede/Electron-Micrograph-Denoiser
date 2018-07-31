@@ -4,7 +4,7 @@ Repository for the [paper](https://arxiv.org/abs/1807.11234) "Improving Electron
 
 This repository is for a deep atrous convolutional encoder-decoder trained to remove Poisson noise from low-dose electron micrographs. It outperforms existing methods' average mean squared errors by 24.6% and has a batch size 1 (worst case) inference time of 77.0 ms for 1 GTX 1080 Ti GPU and a 3.4 GHz i7-6700 processor. More details can be found in the linked paper.
 
-The repository contains a checkpoint for the fully trained network, a training script `denoiser-multi-gpu.py` and an inference script `denoiser.py`. The training script is written for multi-GPU training in a distributed setting and the inference script loads the neural network once for repeated inference.
+The repository contains a checkpoint for the fully trained networks, a training script `denoiser-multi-gpu.py` and an inference script `denoiser.py`. The training script is written for multi-GPU training in a distributed setting and the inference script loads the neural network once for repeated inference.
 
 ## Architecture
 
@@ -92,7 +92,7 @@ To continue training the neural network; end-to-end or to fine-tune it, you will
 
 ## Training Data
 
-At the momoment, my dataset of 17267 2048x2048 micrograph with mean electron counts of at least 2500 ppx is only available through a request to the Warwick microscopy research technoledgy platform. This can be done by either contacting
+At the momoment, my dataset of 17267 2048x2048 micrograph with mean electron counts of at least 2500 ppx is only available through a request to the Warwick microscopy research technology platform. This can be done by either contacting
 
 * Me at j.m.ede@warwick.ac.uk 
 * My PhD supervisor at r.beanland@warwick.ac.uk
