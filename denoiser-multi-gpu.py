@@ -1089,11 +1089,14 @@ def _train_op(tower_losses_ph, tower_mses_ph, variable_strategy, update_ops,
         #optimizer = tf.train.RMSPropOptimizer(learning_rate_ph, momentum=0.9)
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate_ph, beta1=0.5)
 
-    # Create single grouped train op
-    train_op = [
-        optimizer.apply_gradients(
-            gradvars, global_step=global_step)
-    ]
+    #with tf.device("/cpu:0"):
+    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) #For batch normalisation windows
+    with tf.control_dependencies(update_ops):    
+        # Create single grouped train op
+        train_op = [
+            optimizer.apply_gradients(
+                gradvars, global_step=global_step)
+        ]
 
     train_op.extend(update_ops)
     train_op = tf.group(*train_op)
@@ -1116,214 +1119,212 @@ def main(job_dir, data_dir, variable_strategy, num_gpus, log_device_placement,
             os.environ['TF_SYNC_ON_FINISH'] = '0'
             os.environ['TF_ENABLE_WINOGRAD_NONFUSED'] = '1'
 
-            #with tf.device("/cpu:0"):
-            update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) #For batch normalisation windows
-            with tf.control_dependencies(update_ops):
 
-                # Session configuration.
-                log_device_placement = False #Once placement is correct, this fills up too much of the cmd window...
-                sess_config = tf.ConfigProto(
-                    allow_soft_placement=True,
-                    log_device_placement=log_device_placement,
-                    intra_op_parallelism_threads=num_intra_threads,
-                    gpu_options=tf.GPUOptions(force_gpu_compatible=True))
 
-                config = RunConfig(
-                    session_config=sess_config, model_dir=job_dir)
+            # Session configuration.
+            log_device_placement = False #Once placement is correct, this fills up too much of the cmd window...
+            sess_config = tf.ConfigProto(
+                allow_soft_placement=True,
+                log_device_placement=log_device_placement,
+                intra_op_parallelism_threads=num_intra_threads,
+                gpu_options=tf.GPUOptions(force_gpu_compatible=True))
 
-                hparams=tf.contrib.training.HParams(
-                    is_chief=config.is_chief,
-                    **hparams)
+            config = RunConfig(
+                session_config=sess_config, model_dir=job_dir)
 
-                img, img_truth = input_fn(data_dir, 'train', batch_size, num_gpus)
-                img_val, img_val_truth = input_fn(data_dir, 'val', batch_size, num_gpus)
+            hparams=tf.contrib.training.HParams(
+                is_chief=config.is_chief,
+                **hparams)
 
-                with tf.Session(config=sess_config) as sess: #Alternative is tf.train.MonitoredTrainingSession()
+            img, img_truth = input_fn(data_dir, 'train', batch_size, num_gpus)
+            img_val, img_val_truth = input_fn(data_dir, 'val', batch_size, num_gpus)
 
-                    sess.run(tf.initialize_variables(set(tf.all_variables())-temp))
-                    #sess.run( tf.global_variables_initializer())
-                    temp = set(tf.all_variables())
+            with tf.Session(config=sess_config) as sess: #Alternative is tf.train.MonitoredTrainingSession()
 
-                    ____img, ____img_truth = sess.run([img, img_truth])
-                    img_ph = [tf.placeholder(tf.float32, shape=i.shape, name='img') for i in ____img]
-                    img_truth_ph = [tf.placeholder(tf.float32, shape=i.shape, name='img_truth') for i in ____img_truth]
-                    del ____img
-                    del ____img_truth
+                sess.run(tf.initialize_variables(set(tf.all_variables())-temp))
+                #sess.run( tf.global_variables_initializer())
+                temp = set(tf.all_variables())
 
-                    is_training = True
-                    model_fn = get_model_fn(num_gpus, variable_strategy, num_workers)
+                ____img, ____img_truth = sess.run([img, img_truth])
+                img_ph = [tf.placeholder(tf.float32, shape=i.shape, name='img') for i in ____img]
+                img_truth_ph = [tf.placeholder(tf.float32, shape=i.shape, name='img_truth') for i in ____img_truth]
+                del ____img
+                del ____img_truth
 
-                    results = model_fn(img_ph, img_truth_ph, mode=is_training, params=hparams)
-                    _tower_losses = results[0]
-                    _tower_preds = results[1]
-                    _tower_mses = results[2]
-                    update_ops = results[3]
-                    tower_grads = results[4:(4+batch_size)]
+                is_training = True
+                model_fn = get_model_fn(num_gpus, variable_strategy, num_workers)
 
-                    tower_losses_ph = tf.placeholder(tf.float32, shape=(effective_batch_size,), name='tower_losses')
-                    tower_mses_ph = tf.placeholder(tf.float32, shape=(effective_batch_size,), name='tower_mses')
-                    learning_rate_ph = tf.placeholder(tf.float32, name='learning_rate')
+                results = model_fn(img_ph, img_truth_ph, mode=is_training, params=hparams)
+                _tower_losses = results[0]
+                _tower_preds = results[1]
+                _tower_mses = results[2]
+                update_ops = results[3]
+                tower_grads = results[4:(4+batch_size)]
 
-                    sess.run(tf.initialize_variables(set(tf.all_variables()) - temp))
-                    temp = set(tf.all_variables())
+                tower_losses_ph = tf.placeholder(tf.float32, shape=(effective_batch_size,), name='tower_losses')
+                tower_mses_ph = tf.placeholder(tf.float32, shape=(effective_batch_size,), name='tower_mses')
+                learning_rate_ph = tf.placeholder(tf.float32, name='learning_rate')
 
-                    mini_batch_dict = {}
-                    for i in range(batch_size):
-                        _img, _img_truth = sess.run([img[i], img_truth[i]])
-                        mini_batch_dict.update({img_ph[i]: _img})
-                        mini_batch_dict.update({img_truth_ph[i]: _img_truth})
-                    gradvars_pry = sess.run(tower_grads, feed_dict=mini_batch_dict)
-                    del mini_batch_dict
+                sess.run(tf.initialize_variables(set(tf.all_variables()) - temp))
+                temp = set(tf.all_variables())
 
-                    tower_grads_ph = [[tf.placeholder(tf.float32, shape=t.shape, name='tower_grads') 
-                                       for t in gradvars_pry[0]] 
-                                      for _ in range(effective_batch_size)]
-                    del gradvars_pry
-            
-                    train_op, get_loss, get_loss_mse = _train_op(tower_losses_ph, tower_mses_ph, 
-                                                         variable_strategy, update_ops, learning_rate_ph,
-                                                         _tower_grads=tower_grads_ph)
+                mini_batch_dict = {}
+                for i in range(batch_size):
+                    _img, _img_truth = sess.run([img[i], img_truth[i]])
+                    mini_batch_dict.update({img_ph[i]: _img})
+                    mini_batch_dict.update({img_truth_ph[i]: _img_truth})
+                gradvars_pry = sess.run(tower_grads, feed_dict=mini_batch_dict)
+                del mini_batch_dict
 
-                    sess.run(tf.initialize_variables(set(tf.all_variables()) - temp))
+                tower_grads_ph = [[tf.placeholder(tf.float32, shape=t.shape, name='tower_grads') 
+                                   for t in gradvars_pry[0]] 
+                                  for _ in range(effective_batch_size)]
+                del gradvars_pry
 
-                    train_writer = tf.summary.FileWriter( logDir, sess.graph )
+                train_op, get_loss, get_loss_mse = _train_op(tower_losses_ph, tower_mses_ph, 
+                                                     variable_strategy, update_ops, learning_rate_ph,
+                                                     _tower_grads=tower_grads_ph)
 
-                    #print(tf.all_variables())
-                    saver = tf.train.Saver()
+                sess.run(tf.initialize_variables(set(tf.all_variables()) - temp))
 
-                    saver.restore(sess, tf.train.latest_checkpoint("//flexo.ads.warwick.ac.uk/Shared41/Microscopy/Jeffrey-Ede/models/denoiser-multi-gpu-13/model/"))
+                train_writer = tf.summary.FileWriter( logDir, sess.graph )
 
-                    learning_rate = 0.001
-                    counter = 113823
-                    cycleNum = 0
-                    while True:
-                        cycleNum += 1
-                        #Train for a couple of hours
-                        time0 = time.time()
-                    
+                #print(tf.all_variables())
+                saver = tf.train.Saver()
+
+                saver.restore(sess, tf.train.latest_checkpoint("//flexo.ads.warwick.ac.uk/Shared41/Microscopy/Jeffrey-Ede/models/denoiser-multi-gpu-13/model/"))
+
+                learning_rate = 0.001
+                counter = 113823
+                cycleNum = 0
+                while True:
+                    cycleNum += 1
+                    #Train for a couple of hours
+                    time0 = time.time()
+
+                    try:
+                        with open(model_dir+"learning_rate.txt", "r") as lrf:
+                            learning_rate_list = [float(line) for line in lrf]
+                            learning_rate = np.float32(learning_rate_list[0])
+                            print("Using learning rate: {}".format(learning_rate))
+                    except:
+                        pass
+
+                    while time.time()-time0 < modelSavePeriod:
+                        counter += 1
+
+                        tower_losses_list = []
+                        tower_preds_list = []
+                        tower_mses_list = []
+                        ph_dict = {}
+                        j = 0
+                        for incr in range(increase_batch_size_by_factor):
+                            mini_batch_dict = {}
+                            for i in range(batch_size):
+                                __img, __img_truth = sess.run([img[i], img_truth[i]])
+
+                                #__img, __img_truth = sess.run([img[i], img_truth[i]])
+                                mini_batch_dict.update({img_ph[i]: __img})
+                                mini_batch_dict.update({img_truth_ph[i]: __img_truth})
+
+                            mini_batch_results = sess.run([_tower_losses, _tower_preds, _tower_mses] +
+                                                            tower_grads,
+                                                            feed_dict=mini_batch_dict)
+                            tower_losses_list += [x for x in mini_batch_results[0]]
+
+                            #disp(mini_batch_results[1][0].reshape(cropsize, cropsize).astype(np.float32).clip(0.,1.))
+                            #disp(__img_truth[0].reshape(cropsize, cropsize).astype(np.float32))
+
+                            #_save_loc = model_dir+"example-"
+                            #floor = 11
+                            #for m, imgi in enumerate(mini_batch_results[1]):
+                            #    #print(__img)
+                            #    #print(imgi)
+                            #    #disp(__img.reshape(cropsize, cropsize))
+                            #    #disp(imgi.reshape(cropsize, cropsize))
+                            #    Image.fromarray(__img.reshape(cropsize, cropsize)).save( _save_loc+str(floor+m)+".tif")
+                            #    Image.fromarray(imgi.reshape(cropsize, cropsize)).save( _save_loc+str(floor+m)+"_restored.tif")
+                            #    Image.fromarray(__img_truth.reshape(cropsize, cropsize)).save( _save_loc+str(floor+m)+"_truth.tif")
+                            #tower_preds_list += [x for x in mini_batch_results[1]]
+                            tower_mses_list += [x for x in mini_batch_results[2]]
+
+                            for i in range(3, 3+batch_size):
+                                ph_dict.update({ph: val for ph, val in 
+                                                zip(tower_grads_ph[j], 
+                                                    mini_batch_results[i])})
+                                j += 1
+
+                        feed_list = np.asarray(tower_losses_list)
+                        feed_list.shape = (1,)
+                        ph_dict.update({tower_losses_ph: feed_list,
+                                        tower_mses_ph: np.asarray(tower_mses_list),
+                                        learning_rate_ph: learning_rate,
+                                        img_ph[0]: __img,
+                                        #img_ph[1]: __img,
+                                        img_truth_ph[0]: __img_truth})#,
+                                        #img_truth_ph[1]: __img_truth})
+
+                        del tower_losses_list
+                        #del tower_preds_list
+                        del tower_mses_list
+
+                        if counter <= 1 or not counter % save_result_every_n_batches:
+                            try:
+                                save_input_loc = model_dir+"input-"+str(counter)+".tif"
+                                save_truth_loc = model_dir+"truth-"+str(counter)+".tif"
+                                save_output_loc = model_dir+"output-"+str(counter)+".tif"
+                                Image.fromarray(__img.reshape(cropsize, cropsize).astype(np.float32)).save( save_input_loc )
+                                Image.fromarray(__img_truth.reshape(cropsize, cropsize).astype(np.float32)).save( save_truth_loc )
+                                Image.fromarray(mini_batch_results[1][0].reshape(cropsize, cropsize).astype(np.float32)).save( save_output_loc )
+                            except:
+                                print("Image save failed")
+
+                        #for i in range(effective_batch_size):
+                        #    ph_dict.update({ph: val for ph, val in 
+                        #                    zip(tower_grads_ph[i], 
+                        #                        tower_grads_list[i])})
+
+                        _, actual_loss, loss_value = sess.run([train_op, get_loss, get_loss_mse],
+                                                               feed_dict=ph_dict)
+                        del ph_dict
+
                         try:
-                            with open(model_dir+"learning_rate.txt", "r") as lrf:
-                                learning_rate_list = [float(line) for line in lrf]
-                                learning_rate = np.float32(learning_rate_list[0])
-                                print("Using learning rate: {}".format(learning_rate))
+                            log.write("Iter: {}, Loss: {:.8f}".format(counter, float(loss_value)))
                         except:
-                            pass
+                            print("Failed to write to log")
 
-                        while time.time()-time0 < modelSavePeriod:
-                            counter += 1
+                        if not counter % val_skip_n:
+                            mini_batch_dict = {}
+                            for i in range(batch_size):
+                                ___img, ___img_truth = sess.run([img_val[i], img_val_truth[i]])
+                                mini_batch_dict.update({img_ph[i]: ___img})
+                                mini_batch_dict.update({img_truth_ph[i]: ___img_truth})
 
-                            tower_losses_list = []
-                            tower_preds_list = []
-                            tower_mses_list = []
-                            ph_dict = {}
-                            j = 0
-                            for incr in range(increase_batch_size_by_factor):
-                                mini_batch_dict = {}
-                                for i in range(batch_size):
-                                    __img, __img_truth = sess.run([img[i], img_truth[i]])
-
-                                    #__img, __img_truth = sess.run([img[i], img_truth[i]])
-                                    mini_batch_dict.update({img_ph[i]: __img})
-                                    mini_batch_dict.update({img_truth_ph[i]: __img_truth})
-
-                                mini_batch_results = sess.run([_tower_losses, _tower_preds, _tower_mses] +
-                                                                tower_grads,
-                                                                feed_dict=mini_batch_dict)
-                                tower_losses_list += [x for x in mini_batch_results[0]]
-
-                                #disp(mini_batch_results[1][0].reshape(cropsize, cropsize).astype(np.float32).clip(0.,1.))
-                                #disp(__img_truth[0].reshape(cropsize, cropsize).astype(np.float32))
-
-                                #_save_loc = model_dir+"example-"
-                                #floor = 11
-                                #for m, imgi in enumerate(mini_batch_results[1]):
-                                #    #print(__img)
-                                #    #print(imgi)
-                                #    #disp(__img.reshape(cropsize, cropsize))
-                                #    #disp(imgi.reshape(cropsize, cropsize))
-                                #    Image.fromarray(__img.reshape(cropsize, cropsize)).save( _save_loc+str(floor+m)+".tif")
-                                #    Image.fromarray(imgi.reshape(cropsize, cropsize)).save( _save_loc+str(floor+m)+"_restored.tif")
-                                #    Image.fromarray(__img_truth.reshape(cropsize, cropsize)).save( _save_loc+str(floor+m)+"_truth.tif")
-                                #tower_preds_list += [x for x in mini_batch_results[1]]
-                                tower_mses_list += [x for x in mini_batch_results[2]]
-
-                                for i in range(3, 3+batch_size):
-                                    ph_dict.update({ph: val for ph, val in 
-                                                    zip(tower_grads_ph[j], 
-                                                        mini_batch_results[i])})
-                                    j += 1
-
-                            feed_list = np.asarray(tower_losses_list)
-                            feed_list.shape = (1,)
-                            ph_dict.update({tower_losses_ph: feed_list,
-                                            tower_mses_ph: np.asarray(tower_mses_list),
-                                            learning_rate_ph: learning_rate,
-                                            img_ph[0]: __img,
-                                            #img_ph[1]: __img,
-                                            img_truth_ph[0]: __img_truth})#,
-                                            #img_truth_ph[1]: __img_truth})
-
-                            del tower_losses_list
-                            #del tower_preds_list
-                            del tower_mses_list
-
-                            if counter <= 1 or not counter % save_result_every_n_batches:
-                                try:
-                                    save_input_loc = model_dir+"input-"+str(counter)+".tif"
-                                    save_truth_loc = model_dir+"truth-"+str(counter)+".tif"
-                                    save_output_loc = model_dir+"output-"+str(counter)+".tif"
-                                    Image.fromarray(__img.reshape(cropsize, cropsize).astype(np.float32)).save( save_input_loc )
-                                    Image.fromarray(__img_truth.reshape(cropsize, cropsize).astype(np.float32)).save( save_truth_loc )
-                                    Image.fromarray(mini_batch_results[1][0].reshape(cropsize, cropsize).astype(np.float32)).save( save_output_loc )
-                                except:
-                                    print("Image save failed")
-
-                            #for i in range(effective_batch_size):
-                            #    ph_dict.update({ph: val for ph, val in 
-                            #                    zip(tower_grads_ph[i], 
-                            #                        tower_grads_list[i])})
-
-                            _, actual_loss, loss_value = sess.run([train_op, get_loss, get_loss_mse],
-                                                                   feed_dict=ph_dict)
-                            del ph_dict
+                            mini_batch_results = sess.run([_tower_losses, _tower_preds, _tower_mses]+
+                                                            tower_grads,
+                                                            feed_dict=mini_batch_dict)
+                            val_loss = np.mean(np.asarray([x for x in mini_batch_results[2]]))
 
                             try:
-                                log.write("Iter: {}, Loss: {:.8f}".format(counter, float(loss_value)))
+                                val_log.write("Iter: {}, Loss: {:.8f}".format(counter, float(val_loss)))
                             except:
-                                print("Failed to write to log")
+                                print("Failed to write to val log")
 
-                            if not counter % val_skip_n:
-                                mini_batch_dict = {}
-                                for i in range(batch_size):
-                                    ___img, ___img_truth = sess.run([img_val[i], img_val_truth[i]])
-                                    mini_batch_dict.update({img_ph[i]: ___img})
-                                    mini_batch_dict.update({img_truth_ph[i]: ___img_truth})
+                            print("Iter: {}, MSE Loss: {:.6f}, Loss: {:.6f}, Val loss: {:.6f}".format(
+                                  counter, loss_value, actual_loss, val_loss))
+                        else:
+                            print("Iter: {}, MSE Loss: {:.6f}, Loss: {:.6f}".format(
+                                  counter, loss_value, actual_loss))
 
-                                mini_batch_results = sess.run([_tower_losses, _tower_preds, _tower_mses]+
-                                                                tower_grads,
-                                                                feed_dict=mini_batch_dict)
-                                val_loss = np.mean(np.asarray([x for x in mini_batch_results[2]]))
+                        #train_writer.add_summary(summary, counter)
 
-                                try:
-                                    val_log.write("Iter: {}, Loss: {:.8f}".format(counter, float(val_loss)))
-                                except:
-                                    print("Failed to write to val log")
-
-                                print("Iter: {}, MSE Loss: {:.6f}, Loss: {:.6f}, Val loss: {:.6f}".format(
-                                      counter, loss_value, actual_loss, val_loss))
-                            else:
-                                print("Iter: {}, MSE Loss: {:.6f}, Loss: {:.6f}".format(
-                                      counter, loss_value, actual_loss))
-
-                            #train_writer.add_summary(summary, counter)
-
-                        #Save the model
-                        saver.save(sess, save_path=model_dir+"model/", global_step=counter)
-                        #tf.saved_model.simple_save(
-                        #    session=sess,
-                        #    export_dir=model_dir+"model-"+str(counter)+"/",
-                        #    inputs={"img": img[0][0]},
-                        #    outputs={"prediction": prediction})
+                    #Save the model
+                    saver.save(sess, save_path=model_dir+"model/", global_step=counter)
+                    #tf.saved_model.simple_save(
+                    #    session=sess,
+                    #    export_dir=model_dir+"model-"+str(counter)+"/",
+                    #    inputs={"img": img[0][0]},
+                    #    outputs={"prediction": prediction})
     return 
 
 if __name__ == '__main__':
