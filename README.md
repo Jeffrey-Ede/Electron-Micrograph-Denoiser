@@ -92,10 +92,4 @@ To continue training the neural network; end-to-end or to fine-tune it, you will
 
 ## Training Data
 
-At the momoment, my dataset of 17267 2048x2048 micrograph with mean electron counts of at least 2500 ppx is only available through a request to the Warwick microscopy research technology platform. This can be done by either contacting
-
-* Me at j.m.ede@warwick.ac.uk 
-* My PhD supervisor at r.beanland@warwick.ac.uk
-* Or [otherwise](https://warwick.ac.uk/fac/sci/physics/research/condensedmatt/microscopy/em-rtp/)
-
-I'm working on making the dataset immediately accessible through Google cloud storage and OpenML and have set this up. However, I'm not able to release it yet due to internal politics. Hopefully this can be resolved soon. In the meantime, making it accessible through contacting us seems to be the best course of action.
+Our training dataset of 17267 2048x2048 micrographs with mean electron counts of at least 2500 ppx is available [here](https://warwick.ac.uk/fac/sci/physics/research/condensedmatt/microscopy/research/machinelearning/).
