@@ -1,4 +1,4 @@
-# Low-Dose Electron Micrograph Denoiser
+# Electron Micrograph Denoiser
 
 Repository for the [preprint](https://arxiv.org/abs/1807.11234)|[paper](https://www.sciencedirect.com/science/article/abs/pii/S0304399118303334) "Improving Electron Micrograph Signal-to-Noise with an Atrous Convolutional Encoder-Decoder".
 
