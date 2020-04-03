@@ -92,4 +92,4 @@ To continue training the neural network; end-to-end or to fine-tune it, you will
 
 ## Training Data
 
-Our training dataset of 17267 2048x2048 micrographs with mean electron counts of at least 2500 ppx is available [here](https://warwick.ac.uk/fac/sci/physics/research/condensedmatt/microscopy/research/machinelearning/).
+Our training dataset of 17267 2048x2048 micrographs with mean electron counts of at least 2500 ppx is available [here](https://github.com/Jeffrey-Ede/datasets/wiki).
