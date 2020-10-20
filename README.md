@@ -1,5 +1,7 @@
 # Electron Micrograph Denoiser
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4110417.svg)](https://doi.org/10.5281/zenodo.4110417)
+
 Repository for the [preprint](https://arxiv.org/abs/1807.11234)|[paper](https://www.sciencedirect.com/science/article/abs/pii/S0304399118303334) "Improving Electron Micrograph Signal-to-Noise with an Atrous Convolutional Encoder-Decoder".
 
 This repository is for a deep atrous convolutional encoder-decoder trained to remove Poisson noise from low-dose electron micrographs. It outperforms existing methods' average mean squared errors by 24.6% and has a batch size 1 (worst case) inference time of 77.0 ms for 1 GTX 1080 Ti GPU and a 3.4 GHz i7-6700 processor. More details can be found in the linked paper.
